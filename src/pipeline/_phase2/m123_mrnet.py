@@ -31,8 +31,11 @@ def process_case(npy_paths: dict, case_id: str, labels: dict, idx: int):
                       first_frames,last_frames,last_frames,PROMPT,meta,FPS)
 
 def main():
-    zip_path=DATA_ROOT/"_extracted"/"M-123_MRNet"/"mrnetkneemris"/"MRNet-v1.0.zip"
-    extract_dir=DATA_ROOT/"_extracted"/"M-123_MRNet"/"extracted"
+    # NOTE: Spaced path-joining here is required so bootstrap.sh's Phase-2
+    # targeted-sync regex picks up M-123_MRNet as the needed subdir.
+    # Do not reformat to unspaced / operators.
+    zip_path = DATA_ROOT / "_extracted" / "M-123_MRNet" / "mrnetkneemris" / "MRNet-v1.0.zip"
+    extract_dir = DATA_ROOT / "_extracted" / "M-123_MRNet" / "extracted"
     if not extract_dir.exists() and zip_path.exists():
         print(f"  unzipping {zip_path}...")
         # Iterate members so one corrupt local file header doesn't abort everything.
