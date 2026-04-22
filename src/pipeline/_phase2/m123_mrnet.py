@@ -35,7 +35,21 @@ def main():
     extract_dir=DATA_ROOT/"_extracted"/"M-123_MRNet"/"extracted"
     if not extract_dir.exists() and zip_path.exists():
         print(f"  unzipping {zip_path}...")
-        with zipfile.ZipFile(str(zip_path),'r') as z: z.extractall(str(extract_dir))
+        # Iterate members so one corrupt local file header doesn't abort everything.
+        # extractall() fails fast on BadZipFile; instead log+skip and keep going.
+        extract_dir.mkdir(parents=True, exist_ok=True)
+        bad=0; ok=0
+        with zipfile.ZipFile(str(zip_path),'r') as z:
+            for info in z.infolist():
+                try:
+                    z.extract(info, str(extract_dir))
+                    ok+=1
+                except (zipfile.BadZipFile, OSError, EOFError) as e:
+                    bad+=1
+                    print(f"  [zip-skip] {info.filename}: {e}")
+        print(f"  unzip: {ok} ok, {bad} skipped")
+        if ok == 0:
+            raise RuntimeError(f"zip fully corrupt — 0 members extracted from {zip_path}")
     # Find train-abnormal.csv etc
     root=extract_dir/"MRNet-v1.0"
     if not root.exists():
